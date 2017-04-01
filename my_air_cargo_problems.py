@@ -6,7 +6,7 @@ from aimacode.search import (
 from aimacode.utils import expr
 from lp_utils import (
     FluentState, encode_state, decode_state,
-)
+    satisfy_precond)
 from my_planning_graph import PlanningGraph
 
 
@@ -126,7 +126,17 @@ class AirCargoProblem(Problem):
         """
         # TODO implement
         possible_actions = []
+        fluent_state = decode_state(state, self.state_map)
+
+        for action in self.actions_list:
+            # check state.precond with action.precond
+            satisfy = satisfy_precond(action, fluent_state.pos, fluent_state.neg)
+
+            if satisfy:
+                possible_actions.append(action)
+
         return possible_actions
+
 
     def result(self, state: str, action: Action):
         """ Return the state that results from executing the given
@@ -139,6 +149,10 @@ class AirCargoProblem(Problem):
         """
         # TODO implement
         new_state = FluentState([], [])
+        for a in self.actions(state):
+            if action.name == a.name and satisfy_precond(a, action.precond_pos, action.precond_neg):
+                new_state.pos = action.effect_add
+                new_state.neg = action.effect_rem
         return encode_state(new_state, self.state_map)
 
     def goal_test(self, state: str) -> bool:

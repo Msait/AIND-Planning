@@ -66,3 +66,16 @@ def decode_state(state: str, fluent_map: list) -> FluentState:
         else:
             fs.neg.append(fluent_map[idx])
     return fs
+
+
+def satisfy_precond(action, precond_pos, precond_neg):
+
+    for p in action.precond_pos:
+        if p not in precond_pos:
+            return False
+
+    for n in action.precond_neg:
+        if n not in precond_neg:
+            return False
+
+    return True
