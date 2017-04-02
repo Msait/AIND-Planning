@@ -151,8 +151,10 @@ class AirCargoProblem(Problem):
         new_state = FluentState([], [])
         for a in self.actions(state):
             if action.name == a.name and satisfy_precond(a, action.precond_pos, action.precond_neg):
-                new_state.pos = action.effect_add
-                new_state.neg = action.effect_rem
+                decoded_state = decode_state(state, self.state_map)
+                decoded_state.neg = [state for state in decoded_state.neg if state not in action.effect_add] + action.effect_rem
+                decoded_state.pos = [state for state in decoded_state.pos if state not in action.effect_rem] + action.effect_add
+                new_state = decoded_state
         return encode_state(new_state, self.state_map)
 
     def goal_test(self, state: str) -> bool:
