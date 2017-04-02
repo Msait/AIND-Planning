@@ -196,6 +196,14 @@ class AirCargoProblem(Problem):
         '''
         # TODO implement (see Russell-Norvig Ed-3 10.2.3  or Russell-Norvig Ed-2 11.2)
         count = 0
+        if self.goal_test(node.state):
+            return count
+
+        if node.action:
+            effect_add = [literal for literal in node.action.effect_add if literal in self.goal]
+            count = len(self.goal) - len(effect_add)
+        else:
+            count = 2
         return count
 
 
