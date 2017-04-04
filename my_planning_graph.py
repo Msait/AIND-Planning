@@ -311,6 +311,47 @@ class PlanningGraph():
         #   set iff all prerequisite literals for the action hold in S0.  This can be accomplished by testing
         #   to see if a proposed PgNode_a has prenodes that are a subset of the previous S level.  Once an
         #   action node is added, it MUST be connected to the S node instances in the appropriate s_level set.
+        actions = []
+
+        for action in self.all_actions:
+            if not self.satisfy_precond(action.precond_pos, level, True):
+                continue
+
+            if self.satisfy_precond(action.precond_neg, level, False):
+                actions.append(action)
+
+        self.a_levels.append(set())
+        for action in actions:
+            self.a_levels[level].add(PgNode_a(action))
+            """
+             1. connect action to the S node instances in the appropriate s_level set
+            """
+            for state in self.s_levels[level]:
+                if state.is_pos and self.eq_precond(action.precond_pos, [state.symbol]):
+                    state.children.add(action)
+                elif not state.is_pos and self.eq_precond(action.precond_neg, [state.symbol]):
+                    state.children.add(action)
+
+    def eq_precond(self, action_precond, problem_precond):
+
+        if len(action_precond) == len(problem_precond) == 0:
+            return True
+
+        if not action_precond:
+            return False
+
+        for precond in action_precond:
+            if precond not in problem_precond:
+                return False
+
+        return True
+
+    def satisfy_precond(self, action_precond, level, is_precond_pos):
+        for a_precond in action_precond:
+            s_precond = [s.symbol for s in self.s_levels[level] if s.is_pos == is_precond_pos]
+            if a_precond not in s_precond:
+                return False
+        return True
 
     def add_literal_level(self, level):
         ''' add an S (literal) level to the Planning Graph
@@ -329,6 +370,21 @@ class PlanningGraph():
         #   may be "added" to the set without fear of duplication.  However, it is important to then correctly create and connect
         #   all of the new S nodes as children of all the A nodes that could produce them, and likewise add the A nodes to the
         #   parent sets of the S nodes
+        self.s_levels.append(set())
+        for action in self.a_levels[level-1]:
+            set_of_s_nodes = set()
+
+            for literal in action.effnodes:
+                s = PgNode_s(literal.symbol, literal.is_pos)
+                set_of_s_nodes.add(s)
+                self.s_levels[level].add(s)
+
+            action.children = set_of_s_nodes.union(action.children)
+        print("Level: ", level)
+        """TODO:
+         1. correctly create and connect all of the new S nodes as children of all the A nodes that could produce them, 
+         2. and likewise add the A nodes to the parent sets of the S nodes
+        """
 
     def update_a_mutex(self, nodeset):
         ''' Determine and update sibling mutual exclusion for A-level nodes
@@ -387,7 +443,18 @@ class PlanningGraph():
         :return: bool
         '''
         # TODO test for Inconsistent Effects between nodes
-        return False
+        """
+                    Filter for mutex actions: 
+                        1. state.action.effect_add X -> intersect with other_state.action.effect_rem
+                        2. state.action.effect_rem X -> intersect with other_state.action.effect_add
+                    """
+        # effects = []
+        # for states in self.s_levels[level]:
+        #     for state in states:
+        #         effects.append(state.symbol,
+        #                        set(map(lambda a: a.effect_add, state.children)),
+        #                        set(map(lambda a: a.effect_rem, state.children)))
+        # return False
 
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         '''
