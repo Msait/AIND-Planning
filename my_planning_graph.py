@@ -444,18 +444,19 @@ class PlanningGraph():
         '''
         # TODO test for Inconsistent Effects between nodes
         """
-                    Filter for mutex actions: 
-                        1. state.action.effect_add X -> intersect with other_state.action.effect_rem
-                        2. state.action.effect_rem X -> intersect with other_state.action.effect_add
-                    """
-        # effects = []
-        # for states in self.s_levels[level]:
-        #     for state in states:
-        #         effects.append(state.symbol,
-        #                        set(map(lambda a: a.effect_add, state.children)),
-        #                        set(map(lambda a: a.effect_rem, state.children)))
-        # return False
+        Filter for mutex actions: 
+            1. state.action.effect_add X -> intersect with other_state.action.effect_rem
+            2. state.action.effect_rem X -> intersect with other_state.action.effect_add
+        """
+        effect_add = {a for a in node_a1.action.effect_add}
+        effect_rem = {a for a in node_a2.action.effect_rem}
+        if not effect_add.intersection(effect_rem):
+            effect_rem = {a for a in node_a1.action.effect_rem}
+            effect_add = {a for a in node_a2.action.effect_add}
+            if not effect_rem.intersection(effect_add):
+                return False
 
+        return True
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         '''
         Test a pair of actions for mutual exclusion, returning True if the 
