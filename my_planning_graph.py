@@ -472,7 +472,12 @@ class PlanningGraph():
         :return: bool
         '''
         # TODO test for Interference between nodes
-        return False
+        effect_one = {a for a in node_a1.action.effect_add}.union({a for a in node_a1.action.effect_rem})
+        precond_other = {a for a in node_a2.action.precond_pos}.union({a for a in node_a2.action.precond_neg})
+        if not effect_one.intersection(precond_other):
+            return False
+
+        return True
 
     def competing_needs_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         '''
