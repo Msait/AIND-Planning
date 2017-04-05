@@ -457,6 +457,7 @@ class PlanningGraph():
                 return False
 
         return True
+
     def interference_mutex(self, node_a1: PgNode_a, node_a2: PgNode_a) -> bool:
         '''
         Test a pair of actions for mutual exclusion, returning True if the 
@@ -491,6 +492,23 @@ class PlanningGraph():
         '''
 
         # TODO test for Competing Needs between nodes
+        for parent_a1 in node_a1.parents:
+            for parent_a2 in node_a2.parents:
+                # if parent_a1 is mutex for parent_a2
+                if parent_a1.literal in {m.literal for m in parent_a2.mutex}:
+                    return True
+
+        precond_pos_one = {a for a in node_a1.action.precond_pos}
+        precond_neg_one = {a for a in node_a1.action.precond_neg}
+        precond_pos_other = {a for a in node_a2.action.precond_pos}
+        precond_neg_other = {a for a in node_a2.action.precond_neg}
+
+        if not precond_pos_one.intersection(precond_neg_other):
+            return False
+
+        if not precond_pos_other.intersection(precond_neg_one):
+            return False
+
         return False
 
     def update_s_mutex(self, nodeset: set):
