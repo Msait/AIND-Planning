@@ -494,8 +494,7 @@ class PlanningGraph():
         # TODO test for Competing Needs between nodes
         for parent_a1 in node_a1.parents:
             for parent_a2 in node_a2.parents:
-                # if parent_a1 is mutex for parent_a2
-                if parent_a1.literal in {m.literal for m in parent_a2.mutex}:
+                if parent_a1.is_mutex(parent_a2):
                     return True
 
         precond_pos_one = {a for a in node_a1.action.precond_pos}
@@ -565,6 +564,19 @@ class PlanningGraph():
         :return: bool
         '''
         # TODO test for Inconsistent Support between nodes
+        for s1 in node_s1.parents:
+            if node_s1 in s1.effnodes and node_s2 in s1.effnodes:
+                return False
+
+        for s2 in node_s2.parents:
+            if node_s2 in s2.effnodes and node_s1 in s2.effnodes:
+                return False
+
+        for s1 in node_s1.parents:
+            for s2 in node_s2.parents:
+                if s1.is_mutex(s2):
+                    return True
+
         return False
 
     def h_levelsum(self) -> int:
