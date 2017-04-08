@@ -380,7 +380,7 @@ class PlanningGraph():
                 self.s_levels[level].add(s)
 
             action.children = set_of_s_nodes.union(action.children)
-        print("Level: ", level)
+
         """TODO:
          1. correctly create and connect all of the new S nodes as children of all the A nodes that could produce them, 
          2. and likewise add the A nodes to the parent sets of the S nodes
@@ -587,4 +587,11 @@ class PlanningGraph():
         level_sum = 0
         # TODO implement
         # for each goal in the problem, determine the level cost, then add them together
+        for goal in self.problem.goal:
+            level = 0
+            for level_states in self.s_levels:
+                if [True for state in level_states if state.literal == goal ]:
+                    break
+                level += 1
+            level_sum += level
         return level_sum
